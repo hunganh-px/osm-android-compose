@@ -8,5 +8,6 @@ import org.osmdroid.util.GeoPoint
 internal class MapListeners {
     var onMapClick: (GeoPoint) -> Unit by mutableStateOf({})
     var onMapLongClick: (GeoPoint) -> Unit by mutableStateOf({})
+    var onZoomChanged: (Double) -> Unit by mutableStateOf({})
     var onFirstLoadListener: (String) -> Unit by mutableStateOf({})
 }

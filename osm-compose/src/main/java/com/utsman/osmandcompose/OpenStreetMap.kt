@@ -1,6 +1,7 @@
 package com.utsman.osmandcompose
 
 import android.content.Context
+import android.provider.SyncStateContract.Helpers.update
 import androidx.compose.foundation.layout.LayoutScopeMarker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composition
@@ -18,8 +19,13 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import org.osmdroid.events.DelayedMapListener
 import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -28,6 +34,7 @@ import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.TilesOverlay
+import kotlin.coroutines.coroutineContext
 
 internal typealias OsmMapView = MapView
 
@@ -92,6 +99,7 @@ fun OpenStreetMap(
     properties: MapProperties = DefaultMapProperties,
     onMapClick: (GeoPoint) -> Unit = {},
     onMapLongClick: (GeoPoint) -> Unit = {},
+    onZoomChanged: (Double) -> Unit = {},
     onFirstLoadListener: () -> Unit = {},
     content: (@Composable @OsmAndroidComposable OsmAndroidScope.() -> Unit)? = null
 ) {
@@ -103,6 +111,7 @@ fun OpenStreetMap(
     }.also {
         it.onMapClick = onMapClick
         it.onMapLongClick = onMapLongClick
+        it.onZoomChanged = onZoomChanged
         it.onFirstLoadListener = {
             onFirstLoadListener.invoke()
         }
@@ -128,11 +137,12 @@ fun OpenStreetMap(
             mapView
         },
         update = {
-            it.controller.animateTo(
-                cameraState.geoPoint,
-                cameraState.zoom,
-                cameraState.speed
-            )
+//            it.controller.animateTo(
+//                cameraState.geoPoint,
+//                cameraState.zoom,
+//                cameraState.speed
+//            )
+            it.controller.setCenter(cameraState.geoPoint)
         }
     )
 }

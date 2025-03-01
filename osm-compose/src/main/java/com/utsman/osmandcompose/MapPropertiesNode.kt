@@ -1,5 +1,8 @@
 package com.utsman.osmandcompose
 
+import android.os.Handler
+import android.os.Looper
+import kotlinx.coroutines.Runnable
 import org.osmdroid.events.DelayedMapListener
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
@@ -7,6 +10,7 @@ import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.MapEventsOverlay
+import java.util.concurrent.ThreadLocalRandom
 
 internal class MapPropertiesNode(
     val mapViewComposed: OsmMapView,
@@ -16,11 +20,18 @@ internal class MapPropertiesNode(
 ) : OsmAndNode {
 
     private var delayedMapListener: DelayedMapListener? = null
+    private var zoomChangeListener: MapListener? = null
     private var eventOverlay: MapEventsOverlay? = null
+
+    private var handler = Handler(Looper.getMainLooper())
+    private var zoomCallback: Runnable? = null
 
     init {
         overlayManagerState.setMap(mapViewComposed)
         cameraState.setMap(mapViewComposed)
+        zoomCallback = Runnable {
+            mapListeners.onZoomChanged(ThreadLocalRandom.current().nextDouble(0.0, 20.0))
+        }
     }
 
     override fun onAttached() {
@@ -43,6 +54,25 @@ internal class MapPropertiesNode(
         }, 1000L)
 
         mapViewComposed.addMapListener(delayedMapListener)
+
+        zoomChangeListener = object : MapListener {
+            override fun onScroll(event: ScrollEvent?): Boolean {
+                return false
+            }
+
+            override fun onZoom(event: ZoomEvent?): Boolean {
+                zoomCallback?.let {
+                    handler.removeCallbacks(it)
+                    handler.postDelayed(it, 1000)
+                }
+
+
+                return false
+            }
+
+        }
+
+        mapViewComposed.addMapListener(zoomChangeListener)
 
         val eventsReceiver = object : MapEventsReceiver {
             override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
@@ -68,12 +98,14 @@ internal class MapPropertiesNode(
     override fun onCleared() {
         super.onCleared()
         delayedMapListener?.let { mapViewComposed.removeMapListener(it) }
+        zoomChangeListener?.let { mapViewComposed.removeMapListener(it) }
         eventOverlay?.let { mapViewComposed.overlayManager.remove(eventOverlay) }
     }
 
     override fun onRemoved() {
         super.onRemoved()
         delayedMapListener?.let { mapViewComposed.removeMapListener(it) }
+        zoomChangeListener?.let { mapViewComposed.removeMapListener(it) }
         eventOverlay?.let { mapViewComposed.overlayManager.remove(eventOverlay) }
     }
 }
