@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.utsman.osmapp'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.utsman.osmapp"
         minSdk 29
-        targetSdk 35
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
