@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import org.osmdroid.library.BuildConfig
 
 class Ref(var value: Int)
 // Note the inline function below which ensures that this function is essentially
